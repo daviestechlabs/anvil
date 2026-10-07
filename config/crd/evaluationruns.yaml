@@ -1,0 +1,203 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: evaluationruns.anvil.dev
+spec:
+  group: anvil.dev
+  scope: Namespaced
+  names:
+    kind: EvaluationRun
+    listKind: EvaluationRunList
+    plural: evaluationruns
+    singular: evaluationrun
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            properties:
+              artifactRef: &id002
+                type: object
+                properties:
+                  name: &id001
+                    type: string
+                    maxLength: 63
+                    pattern: ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$
+                  uid: &id004
+                    type: string
+                    minLength: 1
+                    maxLength: 128
+                required:
+                - name
+                - uid
+              evaluator:
+                type: object
+                properties:
+                  recipeRef:
+                    type: object
+                    properties:
+                      name: *id001
+                      bindingSHA256: &id003
+                        type: string
+                        maxLength: 64
+                        pattern: ^[a-f0-9]{64}$
+                    required:
+                    - name
+                    - bindingSHA256
+                  durationSeconds:
+                    type: integer
+                    format: int64
+                    minimum: 1
+                    maximum: 86400
+                required:
+                - recipeRef
+                - durationSeconds
+            required:
+            - artifactRef
+            - evaluator
+            x-kubernetes-validations:
+            - rule: self == oldSelf
+              message: Evidence request is immutable; create a new resource for a
+                new decision
+          status:
+            type: object
+            properties:
+              phase:
+                type: string
+                enum:
+                - Pending
+                - Verifying
+                - Verified
+                - Evaluating
+                - Completed
+                - Approved
+                - Rejected
+                - Failed
+              observedGeneration:
+                type: integer
+                format: int64
+              conditions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    status:
+                      type: string
+                      enum:
+                      - 'True'
+                      - 'False'
+                      - Unknown
+                    observedGeneration:
+                      type: integer
+                      format: int64
+                    lastTransitionTime:
+                      type: string
+                      format: date-time
+                    reason:
+                      type: string
+                    message:
+                      type: string
+                  required:
+                  - type
+                  - status
+                  - lastTransitionTime
+                  - reason
+                  - message
+                x-kubernetes-list-type: map
+                x-kubernetes-list-map-keys:
+                - type
+              executionRef: *id002
+              manifest:
+                type: object
+                properties:
+                  uri:
+                    type: string
+                    minLength: 1
+                    maxLength: 2048
+                  sha256: *id003
+                required:
+                - uri
+                - sha256
+              lineage:
+                type: object
+                properties:
+                  sourceRun: *id002
+                  recipeUID: *id004
+                  workflowUID: *id004
+                  workflowSpecSHA256: *id003
+                  requestSHA256: *id003
+                  request:
+                    type: object
+                    properties:
+                      recipeRef:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            maxLength: 63
+                            pattern: ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$
+                          bindingSHA256:
+                            type: string
+                            pattern: ^[a-f0-9]{64}$
+                            maxLength: 64
+                        required:
+                        - name
+                        - bindingSHA256
+                      parameters:
+                        type: object
+                        maxProperties: 24
+                        additionalProperties:
+                          type: string
+                          maxLength: 8000
+                        x-kubernetes-validations:
+                        - rule: self.all(k, k.matches('^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'))
+                          message: Parameter keys must be DNS labels
+                      durationSeconds:
+                        type: integer
+                        format: int64
+                        minimum: 1
+                        maximum: 86400
+                    required:
+                    - recipeRef
+                    - durationSeconds
+                required:
+                - sourceRun
+                - recipeUID
+                - workflowUID
+                - workflowSpecSHA256
+                - requestSHA256
+                - request
+              artifactRef: *id002
+              evaluationRef: *id002
+              report:
+                type: string
+                maxLength: 8000
+              passed:
+                type: boolean
+              recordedAt:
+                type: string
+                format: date-time
+        required:
+        - spec
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: Phase
+      type: string
+      jsonPath: .status.phase
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp

@@ -1,0 +1,34 @@
+[
+  {
+    "value": {
+      "z": true,
+      "a": [
+        "D&D <Ω>",
+        1,
+        null,
+        "line separator"
+      ]
+    },
+    "sha256": "3de7d399ae8c33f4e4cd82c3bf1b9346a182b756b3007004d3203cbff782a1f7"
+  },
+  {
+    "value": {
+      "integer": 86400,
+      "nested": {
+        "second": "B",
+        "first": "A"
+      },
+      "emoji": "🛠️"
+    },
+    "sha256": "e0e0acddae276528da5f573eed03433371647522467bc46d4bbe757f86fb8fe6"
+  },
+  {
+    "value": {
+      "2": "second",
+      "10": "tenth",
+      "": "BMP",
+      "𐀀": "astral"
+    },
+    "sha256": "3520691d0da587595a2f0852ecc97ea5897715b98f8ab1165b2c65a2b21053d8"
+  }
+]

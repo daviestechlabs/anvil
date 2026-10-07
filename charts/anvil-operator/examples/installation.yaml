@@ -1,0 +1,32 @@
+# Replace the illustrative image digest and references before installation.
+apiVersion: anvil.dev/v1alpha1
+kind: Anvil
+metadata:
+  name: anvil
+  namespace: anvil
+spec:
+  image: registry.example/anvil@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  publicOrigin: https://anvil.example
+  identity:
+    issuer: https://identity.example/
+    audience: anvil
+    jwksURL: https://identity.example/jwks
+    requiredGroup: operators
+    tokenHeader: x-envoy-oidc-id-token
+  databaseSecretRef:
+    name: anvil-db-app
+    key: uri
+  databaseCARef:
+    name: anvil-db-ca
+    key: ca.crt
+  stagingClaim: anvil-staging
+  trainingConfigMap: anvil-training-config
+  configurationRevision: '1'
+  webReplicas: 1
+  controllerEnabled: true
+  artifactImporterEnabled: false
+  # Optional. The Gateway and its TLS/OIDC policy have their own owners.
+  # gateway:
+  #   name: public
+  #   namespace: networking
+  #   sectionName: https

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: anvil-operator
+description: Native Anvil installation and Argo training controllers
+type: application
+version: 0.1.0
+appVersion: 0.1.0

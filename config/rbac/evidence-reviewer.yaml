@@ -1,0 +1,24 @@
+# Bind these Roles independently. Run submission does not imply promotion approval.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: anvil-evidence-submitter
+rules:
+  - apiGroups: [anvil.dev]
+    resources: [trainingartifacts, evaluationruns]
+    verbs: [create, get, list, watch, delete]
+  - apiGroups: [anvil.dev]
+    resources: [trainingrecipes, trainingruns]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: anvil-promotion-approver
+rules:
+  - apiGroups: [anvil.dev]
+    resources: [modelpromotions]
+    verbs: [create, get, list, watch]
+  - apiGroups: [anvil.dev]
+    resources: [trainingartifacts, evaluationruns, trainingruns, trainingrecipes]
+    verbs: [get, list]

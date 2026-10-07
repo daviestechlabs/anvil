@@ -1,0 +1,13 @@
+apiVersion: anvil.dev/v1alpha1
+kind: TrainingRun
+metadata:
+  name: linear-model-first-run
+  namespace: anvil-training
+spec:
+  request:
+    recipeRef:
+      name: linear-model-v1
+      bindingSHA256: 72d03308c32b754a1da71953b73a598bd33003c2d63afd12be991d85e754836e
+    durationSeconds: 300
+    parameters:
+      epochs: '200'

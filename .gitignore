@@ -1,0 +1,11 @@
+/bin/
+/vendor/
+.env
+.env.*
+*.key
+*.pem
+*.kubeconfig
+/receipts/
+__pycache__/
+*.pyc
+.DS_Store

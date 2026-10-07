@@ -1,0 +1,80 @@
+{{- if .Values.metrics.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "anvil.operatorName" . }}-metrics
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: anvil-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  selector:
+    app.kubernetes.io/name: anvil-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: metrics
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "anvil.operatorName" . }}-metrics
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: anvil-operator
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.metrics.monitoringNamespace }}
+      ports:
+        - protocol: TCP
+          port: 8080
+{{- if .Values.metrics.serviceMonitor }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "anvil.operatorName" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: anvil-operator
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  endpoints:
+    - port: metrics
+      interval: 30s
+{{- end }}
+{{- if .Values.metrics.alerts }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "anvil.operatorName" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  groups:
+    - name: anvil-operator
+      rules:
+        - alert: AnvilReconcileErrors
+          expr: 'sum(rate(controller_runtime_reconcile_errors_total{namespace="{{ .Release.Namespace }}",controller=~"trainingrun|trainingartifact|evaluationrun|modelpromotion"}[5m])) > 0'
+          for: 10m
+          labels: {severity: warning}
+          annotations: {summary: 'Anvil cannot reconcile execution resources'}
+        {{- range $reason, $seconds := dict "cancellation" 300 "capacity" 900 "finalizer" 600 }}
+        - alert: Anvil{{ $reason | title }}Stalled
+          expr: 'anvil_training_oldest_wait_seconds{namespace="{{ $.Release.Namespace }}",reason="{{ $reason }}"} > {{ $seconds }}'
+          for: 5m
+          labels: {severity: warning}
+          annotations: {summary: 'Anvil {{ $reason }} waits for operator inspection'}
+        {{- end }}
+{{- end }}
+{{- else if or .Values.metrics.serviceMonitor .Values.metrics.alerts }}
+{{- fail "metrics.enabled is required for monitoring resources" }}
+{{- end }}

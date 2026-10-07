@@ -1,0 +1,47 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: anvil-operator
+rules:
+  - apiGroups: [anvil.dev]
+    resources: [trainingruns]
+    verbs: [get, list, watch, create, patch]
+  - apiGroups: [anvil.dev]
+    resources: [trainingruns/status, trainingruns/finalizers]
+    verbs: [get, patch, update]
+  - apiGroups: [anvil.dev]
+    resources: [trainingartifacts, evaluationruns, modelpromotions]
+    verbs: [get, list, watch]
+  - apiGroups: [anvil.dev]
+    resources: [trainingartifacts/status, evaluationruns/status, modelpromotions/status, trainingartifacts/finalizers, evaluationruns/finalizers]
+    verbs: [get, patch, update]
+  - apiGroups: [anvil.dev]
+    resources: [trainingrecipes]
+    verbs: [get]
+  - apiGroups: [argoproj.io]
+    resources: [workflows]
+    verbs: [get, list, watch, create, patch]
+  - apiGroups: [argoproj.io]
+    resources: [workflowtemplates]
+    verbs: [get]
+  - apiGroups: ['']
+    resources: [pods]
+    verbs: [get, list]
+  - apiGroups: ['']
+    resources: [events]
+    verbs: [create, patch]
+  - apiGroups: [coordination.k8s.io]
+    resources: [leases]
+    verbs: [get, list, watch, create, update, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: anvil-operator
+subjects:
+  - kind: ServiceAccount
+    name: anvil-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: anvil-operator

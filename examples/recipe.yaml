@@ -1,0 +1,25 @@
+apiVersion: anvil.dev/v1alpha1
+kind: TrainingRecipe
+metadata:
+  name: linear-model-v1
+  namespace: anvil-training
+spec:
+  enabled: true
+  binding:
+    revision: linear-model-v1
+    workflowTemplate: anvil-linear-model-v1
+    templateSpecSHA256: 67dc6e93e12b328e2537b98eba065fd96fa6887fb15e0afa51e6fa7bf3df4667
+    serviceAccountName: anvil-example-worker
+    concurrencyKey: cpu-training
+    maxDurationSeconds: 300
+    parameters:
+      epochs:
+        required: true
+        default: '200'
+        maxLength: 3
+        choices:
+        - '100'
+        - '200'
+        - '500'
+    outputs:
+    - model-sha256

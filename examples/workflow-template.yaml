@@ -1,0 +1,84 @@
+# This CPU example learns a linear model from synthetic, public inputs.
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: anvil-linear-model-v1
+  namespace: anvil-training
+  annotations:
+    anvil.daviestechlabs.io/recipe-revision: linear-model-v1
+spec:
+  entrypoint: train
+  serviceAccountName: anvil-example-worker
+  parallelism: 1
+  ttlStrategy:
+    secondsAfterSuccess: 86400
+    secondsAfterFailure: 259200
+    secondsAfterCompletion: 604800
+  podGC:
+    strategy: OnWorkflowCompletion
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+    seccompProfile:
+      type: RuntimeDefault
+  templates:
+  - name: train
+    inputs:
+      parameters:
+      - name: epochs
+    script:
+      image: docker.io/library/python:3.12.13-slim-bookworm@sha256:d50fb7611f86d04a3b0471b46d7557818d88983fc3136726336b2a4c657aa30b
+      command:
+      - python
+      env:
+      - name: EPOCHS
+        value: '{{inputs.parameters.epochs}}'
+      source: |
+        import hashlib, json, os
+        epochs = int(os.environ['EPOCHS'])
+        weight, bias = 0.0, 0.0
+        data = [(x / 10, 2 * x / 10 + 1) for x in range(10)]
+        for _ in range(epochs):
+            dw = sum(2 * (weight * x + bias - y) * x for x, y in data) / len(data)
+            db = sum(2 * (weight * x + bias - y) for x, y in data) / len(data)
+            weight -= 0.1 * dw
+            bias -= 0.1 * db
+        model = json.dumps({'weight': weight, 'bias': bias}, sort_keys=True).encode()
+        with open('/tmp/model.json', 'wb') as output:
+            output.write(model)
+        with open('/tmp/model.sha256', 'w') as output:
+            output.write(hashlib.sha256(model).hexdigest())
+      resources:
+        requests:
+          cpu: 100m
+          memory: 64Mi
+        limits:
+          cpu: '1'
+          memory: 128Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+          - ALL
+      volumeMounts:
+      - name: tmp
+        mountPath: /tmp
+    outputs:
+      parameters:
+      - name: model-sha256
+        globalName: model-sha256
+        valueFrom:
+          path: /tmp/model.sha256
+  volumes:
+  - name: tmp
+    emptyDir:
+      sizeLimit: 16Mi
+  automountServiceAccountToken: false
+  executor:
+    serviceAccountName: anvil-example-worker
+  podMetadata:
+    labels:
+      app.kubernetes.io/name: anvil-example-worker
+  podSpecPatch: '{"initContainers":[{"name":"init","securityContext":{"allowPrivilegeEscalation":false,"runAsNonRoot":true,"readOnlyRootFilesystem":true,"capabilities":{"drop":["ALL"]},"seccompProfile":{"type":"RuntimeDefault"}},"resources":{"requests":{"cpu":"10m","memory":"32Mi"},"limits":{"cpu":"100m","memory":"128Mi"}}}],"containers":[{"name":"wait","securityContext":{"allowPrivilegeEscalation":false,"runAsNonRoot":true,"readOnlyRootFilesystem":true,"capabilities":{"drop":["ALL"]},"seccompProfile":{"type":"RuntimeDefault"}},"resources":{"requests":{"cpu":"10m","memory":"32Mi"},"limits":{"cpu":"100m","memory":"128Mi"}}}]}'

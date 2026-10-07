@@ -1,0 +1,5 @@
+{{- range $kind := list "Workflow" "WorkflowTemplate" "WorkflowTaskResult" -}}
+{{- if not ($.Capabilities.APIVersions.Has (printf "argoproj.io/v1alpha1/%s" $kind)) -}}
+{{- fail (printf "Argo prerequisite missing: argoproj.io/v1alpha1/%s. Install Argo Workflows CRDs and its controller before Anvil. For offline rendering, pass --api-versions for Workflow, WorkflowTemplate, and WorkflowTaskResult." $kind) -}}
+{{- end -}}
+{{- end -}}

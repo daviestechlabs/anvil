@@ -1,0 +1,205 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: anvils.anvil.dev
+spec:
+  group: anvil.dev
+  scope: Namespaced
+  names:
+    kind: Anvil
+    listKind: AnvilList
+    plural: anvils
+    singular: anvil
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: Ready
+      type: string
+      jsonPath: .status.conditions[?(@.type=="Ready")].status
+    - name: Replicas
+      type: integer
+      jsonPath: .status.readyReplicas
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+    schema:
+      openAPIV3Schema:
+        type: object
+        x-kubernetes-validations:
+        - rule: self.metadata.name == 'anvil'
+          message: One Anvil installation named anvil is supported per application
+            namespace.
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            required:
+            - image
+            - publicOrigin
+            - identity
+            - databaseSecretRef
+            - databaseCARef
+            - stagingClaim
+            x-kubernetes-validations:
+            - rule: self.stagingClaim == oldSelf.stagingClaim
+              message: Staging storage cannot change on an existing installation.
+            properties:
+              image:
+                type: string
+                maxLength: 512
+                pattern: ^[^{}\s]+@sha256:[a-f0-9]{64}$
+              publicOrigin:
+                type: string
+                maxLength: 253
+                pattern: ^https://[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:[0-9]{1,5})?$
+              identity:
+                type: object
+                required:
+                - issuer
+                - audience
+                - jwksURL
+                - requiredGroup
+                - tokenHeader
+                properties:
+                  issuer: &id001
+                    type: string
+                    maxLength: 2048
+                    pattern: ^https://[^/?#]+(/[^?#]*)?$
+                  jwksURL: *id001
+                  audience:
+                    type: string
+                    minLength: 1
+                    maxLength: 512
+                  requiredGroup:
+                    type: string
+                    minLength: 1
+                    maxLength: 253
+                  tokenHeader:
+                    type: string
+                    default: x-envoy-oidc-id-token
+                    maxLength: 100
+                    pattern: ^[a-z][a-z0-9-]*$
+              databaseSecretRef:
+                type: object
+                required:
+                - name
+                - key
+                properties:
+                  name: &id002
+                    type: string
+                    minLength: 1
+                    maxLength: 63
+                    pattern: ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$
+                  key:
+                    type: string
+                    minLength: 1
+                    maxLength: 253
+                    pattern: ^[A-Za-z0-9._-]+$
+              databaseCARef:
+                type: object
+                required:
+                - name
+                - key
+                properties:
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 63
+                    pattern: ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$
+                  key:
+                    type: string
+                    minLength: 1
+                    maxLength: 253
+                    pattern: ^[A-Za-z0-9._-]+$
+                  kind:
+                    type: string
+                    enum:
+                    - ConfigMap
+                    - Secret
+                    default: ConfigMap
+              stagingClaim: *id002
+              fleetConfigMap: *id002
+              trainingConfigMap: *id002
+              configurationRevision:
+                type: string
+                default: '1'
+                minLength: 1
+                maxLength: 80
+              webReplicas:
+                type: integer
+                format: int32
+                minimum: 1
+                maximum: 10
+                default: 1
+              controllerEnabled:
+                type: boolean
+                default: true
+              artifactImporterEnabled:
+                type: boolean
+                default: false
+              gateway:
+                type: object
+                required:
+                - name
+                - namespace
+                - sectionName
+                properties:
+                  name: *id002
+                  namespace: *id002
+                  sectionName: *id002
+          status:
+            type: object
+            properties:
+              observedGeneration:
+                type: integer
+                format: int64
+              configurationSHA256:
+                type: string
+                pattern: ^[a-f0-9]{64}$
+              readyReplicas:
+                type: integer
+                format: int32
+              conditions:
+                type: array
+                x-kubernetes-list-type: map
+                x-kubernetes-list-map-keys:
+                - type
+                items:
+                  type: object
+                  required:
+                  - type
+                  - status
+                  - reason
+                  - message
+                  - lastTransitionTime
+                  properties:
+                    type:
+                      type: string
+                      maxLength: 100
+                    status:
+                      type: string
+                      enum:
+                      - 'True'
+                      - 'False'
+                      - Unknown
+                    reason:
+                      type: string
+                      maxLength: 100
+                    message:
+                      type: string
+                      maxLength: 2048
+                    lastTransitionTime:
+                      type: string
+                      format: date-time
+                    observedGeneration:
+                      type: integer
+                      format: int64

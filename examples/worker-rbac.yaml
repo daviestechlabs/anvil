@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: anvil-example-worker
+  namespace: anvil-training
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: anvil-example-worker
+  namespace: anvil-training
+rules:
+  - apiGroups: [argoproj.io]
+    resources: [workflowtaskresults]
+    verbs: [create, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: anvil-example-worker
+  namespace: anvil-training
+subjects:
+  - kind: ServiceAccount
+    name: anvil-example-worker
+    namespace: anvil-training
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: anvil-example-worker
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: anvil-example-worker.service-account-token
+  namespace: anvil-training
+  annotations:
+    kubernetes.io/service-account.name: anvil-example-worker
+type: kubernetes.io/service-account-token

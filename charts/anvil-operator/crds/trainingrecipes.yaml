@@ -1,0 +1,132 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: trainingrecipes.anvil.dev
+spec:
+  group: anvil.dev
+  scope: Namespaced
+  names:
+    kind: TrainingRecipe
+    listKind: TrainingRecipeList
+    plural: trainingrecipes
+    singular: trainingrecipe
+    shortNames:
+    - trcp
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            properties:
+              enabled:
+                type: boolean
+                default: false
+              binding:
+                type: object
+                properties:
+                  revision:
+                    type: string
+                    minLength: 1
+                    maxLength: 80
+                    pattern: "^[A-Za-z0-9._-]+$"
+                  workflowTemplate:
+                    type: string
+                    maxLength: 63
+                    pattern: "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$"
+                  templateSpecSHA256:
+                    type: string
+                    pattern: "^[a-f0-9]{64}$"
+                    maxLength: 64
+                  serviceAccountName:
+                    type: string
+                    maxLength: 63
+                    pattern: "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$"
+                  concurrencyKey:
+                    type: string
+                    maxLength: 63
+                    pattern: "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$"
+                  maxDurationSeconds:
+                    type: integer
+                    format: int64
+                    minimum: 1
+                    maximum: 86400
+                  fixedParameters:
+                    type: object
+                    maxProperties: 24
+                    additionalProperties:
+                      type: string
+                      maxLength: 8000
+                    x-kubernetes-validations:
+                    - rule: self.all(k, k.matches('^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'))
+                      message: Parameter keys must be DNS labels
+                  parameters:
+                    type: object
+                    maxProperties: 24
+                    additionalProperties:
+                      type: object
+                      properties:
+                        required:
+                          type: boolean
+                        default:
+                          type: string
+                          maxLength: 8000
+                        choices:
+                          type: array
+                          maxItems: 20
+                          items:
+                            type: string
+                            maxLength: 8000
+                        pattern:
+                          type: string
+                          maxLength: 200
+                        maxLength:
+                          type: integer
+                          minimum: 1
+                          maximum: 8000
+                      required:
+                      - maxLength
+                    x-kubernetes-validations:
+                    - rule: self.all(k, k.matches('^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'))
+                      message: Parameter keys must be DNS labels
+                  outputs:
+                    type: array
+                    maxItems: 24
+                    x-kubernetes-list-type: set
+                    items:
+                      type: string
+                      maxLength: 63
+                      pattern: "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$"
+                required:
+                - revision
+                - workflowTemplate
+                - templateSpecSHA256
+                - serviceAccountName
+                - concurrencyKey
+                - maxDurationSeconds
+                x-kubernetes-validations:
+                - rule: self == oldSelf
+                  message: Recipe binding is immutable; create a new recipe for a
+                    new revision
+            required:
+            - binding
+        required:
+        - spec
+    additionalPrinterColumns:
+    - name: Enabled
+      type: boolean
+      jsonPath: ".spec.enabled"
+    - name: Revision
+      type: string
+      jsonPath: ".spec.binding.revision"

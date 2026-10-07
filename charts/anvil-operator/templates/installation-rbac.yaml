@@ -1,0 +1,76 @@
+{{- if .Values.installationController.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "anvil.operatorName" . }}-installation
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [anvil.dev]
+    resources: [anvils]
+    verbs: [get, list, watch]
+  - apiGroups: [anvil.dev]
+    resources: [anvils/status, anvils/finalizers]
+    verbs: [get, patch, update]
+  - apiGroups: [apps]
+    resources: [deployments]
+    verbs: [get, list, watch, create, patch, update]
+  - apiGroups: ['']
+    resources: [services, serviceaccounts]
+    verbs: [get, list, watch, create, patch, update]
+  - apiGroups: ['']
+    resources: [configmaps, persistentvolumeclaims]
+    verbs: [get, list, watch]
+  - apiGroups: ['']
+    resources: [events]
+    verbs: [create, patch]
+  - apiGroups: [gateway.networking.k8s.io]
+    resources: [httproutes]
+    verbs: [get, create, patch, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "anvil.operatorName" . }}-installation
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "anvil.operatorName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "anvil.operatorName" . }}-installation
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "anvil.operatorName" . }}-application-training
+  namespace: {{ .Values.trainingNamespace }}
+rules:
+  - apiGroups: [anvil.dev]
+    resources: [trainingrecipes]
+    verbs: [get]
+  - apiGroups: [anvil.dev]
+    resources: [trainingruns]
+    verbs: [get, create, patch]
+  - apiGroups: [argoproj.io]
+    resources: [workflowtemplates]
+    verbs: [get]
+  - apiGroups: ['']
+    resources: [pods]
+    verbs: [list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "anvil.operatorName" . }}-application-training
+  namespace: {{ .Values.trainingNamespace }}
+subjects:
+  - kind: ServiceAccount
+    name: anvil-controller
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "anvil.operatorName" . }}-application-training
+{{- end }}

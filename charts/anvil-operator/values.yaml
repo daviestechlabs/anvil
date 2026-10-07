@@ -1,0 +1,15 @@
+operatorImage:
+  repository: registry.example/anvil-operator
+  # Set the published operator digest. Tags are not accepted.
+  digest: ''
+trainingNamespace: anvil-training
+# Anvil resources live in the Helm release namespace.
+installationController:
+  enabled: true
+# Namespace creation, Argo, Gateway API, Postgres, and storage remain explicit prerequisites.
+# Plain HTTP metrics stay inside the cluster behind this ingress policy.
+metrics:
+  enabled: false
+  serviceMonitor: false
+  alerts: false
+  monitoringNamespace: monitoring

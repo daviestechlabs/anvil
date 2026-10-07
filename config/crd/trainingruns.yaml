@@ -1,0 +1,198 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: trainingruns.anvil.dev
+spec:
+  group: anvil.dev
+  scope: Namespaced
+  names:
+    kind: TrainingRun
+    listKind: TrainingRunList
+    plural: trainingruns
+    singular: trainingrun
+    shortNames:
+    - trun
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            properties:
+              request:
+                type: object
+                properties:
+                  recipeRef:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        maxLength: 63
+                        pattern: "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$"
+                      bindingSHA256:
+                        type: string
+                        pattern: "^[a-f0-9]{64}$"
+                        maxLength: 64
+                    required:
+                    - name
+                    - bindingSHA256
+                  parameters:
+                    type: object
+                    maxProperties: 24
+                    additionalProperties:
+                      type: string
+                      maxLength: 8000
+                    x-kubernetes-validations:
+                    - rule: self.all(k, k.matches('^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'))
+                      message: Parameter keys must be DNS labels
+                  durationSeconds:
+                    type: integer
+                    format: int64
+                    minimum: 1
+                    maximum: 86400
+                required:
+                - recipeRef
+                - durationSeconds
+                x-kubernetes-validations:
+                - rule: self == oldSelf
+                  message: Training request is immutable; create a new run to retry
+              cancel:
+                type: boolean
+                default: false
+                x-kubernetes-validations:
+                - rule: "!oldSelf || self"
+                  message: Cancellation cannot be withdrawn
+            required:
+            - request
+          status:
+            type: object
+            properties:
+              phase:
+                type: string
+                enum:
+                - Pending
+                - Submitting
+                - Running
+                - Cancelling
+                - Succeeded
+                - Failed
+                - Cancelled
+              observedGeneration:
+                type: integer
+                format: int64
+              workflowSpecSHA256:
+                type: string
+                maxLength: 64
+                pattern: "^[a-f0-9]{64}$"
+              recipeUID:
+                type: string
+              workflowRef:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    maxLength: 63
+                    pattern: "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$"
+                  uid:
+                    type: string
+                required:
+                - name
+              progress:
+                type: object
+                required: [completed, total]
+                properties:
+                  completed:
+                    type: integer
+                    format: int64
+                    minimum: 0
+                    maximum: 1000000000
+                  total:
+                    type: integer
+                    format: int64
+                    minimum: 0
+                    maximum: 1000000000
+                x-kubernetes-validations:
+                - rule: "self.completed <= self.total"
+                  message: "Completed work cannot exceed total work"
+              conditions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    status:
+                      type: string
+                      enum:
+                      - 'True'
+                      - 'False'
+                      - Unknown
+                    observedGeneration:
+                      type: integer
+                      format: int64
+                    lastTransitionTime:
+                      type: string
+                      format: date-time
+                    reason:
+                      type: string
+                    message:
+                      type: string
+                  required:
+                  - type
+                  - status
+                  - lastTransitionTime
+                  - reason
+                  - message
+                x-kubernetes-list-type: map
+                x-kubernetes-list-map-keys:
+                - type
+              outputs:
+                type: object
+                maxProperties: 24
+                additionalProperties:
+                  type: string
+                  maxLength: 8000
+                x-kubernetes-validations:
+                - rule: self.all(k, k.matches('^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'))
+                  message: Parameter keys must be DNS labels
+              outputParameters:
+                type: array
+                maxItems: 24
+                items:
+                  type: string
+                  maxLength: 63
+                  pattern: "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$"
+              startedAt:
+                type: string
+                format: date-time
+              finishedAt:
+                type: string
+                format: date-time
+        required:
+        - spec
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: Phase
+      type: string
+      jsonPath: ".status.phase"
+    - name: Recipe
+      type: string
+      jsonPath: ".spec.request.recipeRef.name"
+    - name: Workflow
+      type: string
+      jsonPath: ".status.workflowRef.name"
+    - name: Age
+      type: date
+      jsonPath: ".metadata.creationTimestamp"

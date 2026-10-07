@@ -1,0 +1,5 @@
+.git
+.env*
+bin
+receipts
+__pycache__
