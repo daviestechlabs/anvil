@@ -9,12 +9,54 @@ No contributor license agreement is required.
 ## Local checks
 
 Install Go 1.26.5 or later, Python 3.11 or later, PyYAML, and Helm.
-Run the commands in the root README.
+Build the CLI and run the package checks.
+
+```bash
+go build -o /tmp/anvilctl ./cmd/anvilctl
+./scripts/test.sh
+python3 scripts/test-chart.py
+python3 scripts/test-api-compatibility.py
+ANVILCTL_PATH=/tmp/anvilctl python3 quickstart/test_quickstart.py
+```
+
 Controller changes need race tests and local Kubernetes API tests.
 CRD changes need schema compatibility tests and matching chart copies.
 Execution changes need the disposable CPU lifecycle test.
 Use synthetic data and a disposable cluster.
 Never run contribution tests against production.
+
+## Kubernetes integration checks
+
+Run the checks from the repository root.
+
+```bash
+./scripts/test.sh
+go build ./cmd/anvil-operator ./cmd/anvilctl
+kubectl kustomize config/default > /tmp/anvil-install.yaml
+```
+
+The integration suite starts a local Kubernetes API server and etcd.
+It checks the shipped CRDs and controller transitions.
+It simulates Argo status, worker exit, Deployment availability, and Gateway acceptance.
+It does not prove live Argo execution.
+
+Install the test binaries with the pinned setup tool.
+Run the integration suite.
+
+```bash
+go run sigs.k8s.io/controller-runtime/tools/setup-envtest@v0.0.0-20250517180713-32e5e9e948a5 \
+  use 1.37.0 --bin-dir /tmp/anvil-envtest -p path
+export KUBEBUILDER_ASSETS=/tmp/anvil-envtest/k8s/1.37.0-linux-amd64
+./scripts/test-integration.sh
+```
+
+Use the printed asset path for your operating system and architecture.
+Tests use a Kubernetes 1.37 API server.
+The target cluster must support these validation rules and Argo Workflows.
+Set `ANVIL_HELM_TEST=1` with Helm on `PATH` to check installation, upgrades, removal, and the chart's actual permissions.
+That check rejects missing Argo APIs before installing workloads.
+It then installs external Argo test definitions and lets Helm install all six Anvil CRDs.
+It verifies that operator removal retains the CRDs, application resource, and external storage.
 
 ## Review rules
 

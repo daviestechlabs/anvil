@@ -17,7 +17,7 @@ Install Argo Workflows 4.1 and create the training namespace first.
 Helm requires the Workflow, WorkflowTemplate, and WorkflowTaskResult APIs before installation or upgrade.
 The operator checks their presence at startup without cluster-wide CRD permissions.
 The cluster owner retains Argo installation, controller configuration, upgrades, and removal.
-Review Argo controller defaults and admission mutations against the operator's [execution contract](../../README.md#execution-contract).
+Review Argo controller defaults and admission mutations against the operator's [execution contract](../../docs/EXECUTION.md).
 Added specification fields cause a `WorkflowConflict` condition.
 An observation finalizer retains each Workflow until Anvil records completion and confirms worker exit.
 Configure artifact storage and worker credentials if the Argo controller requires log archiving.
@@ -27,9 +27,10 @@ Supply its certificate authority through an existing ConfigMap or Secret.
 CloudNativePG can own the database and these Secrets.
 The Anvil operator receives no Secret-read permission.
 
-Publish the operator image through the [package build](../../README.md).
+Publish the operator image with [the build script](../../scripts/build.sh).
+Set `REGISTRY=your-registry.example/anvil TAG=local PUSH=1` when running `./scripts/build.sh`.
 Use its verified digest when installing the chart.
-Run these commands from `product/anvil/operator`.
+Run these commands from the repository root.
 
 ```bash
 helm upgrade --install anvil-operator charts/anvil-operator \
@@ -70,7 +71,7 @@ helm template anvil-operator charts/anvil-operator \
 
 ## Chart archive
 
-Package the chart from `product/anvil/operator`.
+Package the chart from the repository root.
 
 ```bash
 helm package charts/anvil-operator --destination dist
