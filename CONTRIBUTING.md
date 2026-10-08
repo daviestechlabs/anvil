@@ -6,6 +6,15 @@ Use small pull requests with a clear problem statement and validation results.
 Maintainers review changes before merge.
 No contributor license agreement is required.
 
+## Maintenance model
+
+The full Anvil implementation is maintained in a separate, authoritative private repository.
+This repository publishes its reusable open source core.
+Contributors can submit issues and pull requests here without access to the private repository.
+Maintainers review shared changes in the authoritative repository before publishing an updated export.
+Private integrations and deployment configuration remain outside this package.
+GitHub CI validates this package; production deployments follow the authoritative repository's release process.
+
 ## Local checks
 
 Install Go 1.26.5 or later, Python 3.11 or later, PyYAML, and Helm.
