@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: anvil-console
+  namespace: anvil
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: anvil-console-reader
+  namespace: anvil
+rules:
+  - apiGroups: [anvil.dev]
+    resources:
+      [anvils, trainingrecipes, trainingruns, trainingartifacts, evaluationruns, modelpromotions]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: anvil-console-reader
+  namespace: anvil
+subjects:
+  - kind: ServiceAccount
+    name: anvil-console
+    namespace: anvil
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: anvil-console-reader
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anvil-console
+  namespace: anvil
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: anvil-console }
+  template:
+    metadata:
+      labels: { app: anvil-console }
+    spec:
+      serviceAccountName: anvil-console
+      securityContext:
+        {
+          runAsNonRoot: true,
+          runAsUser: 1000,
+          fsGroup: 1000,
+          seccompProfile: { type: RuntimeDefault },
+        }
+      containers:
+        - name: console
+          # Replace this image with a reviewed registry digest before deployment.
+          image: your-registry.example/anvil-console:local
+          ports: [{ name: http, containerPort: 8081 }]
+          env:
+            - name: ANVIL_NAMESPACE
+              valueFrom: { fieldRef: { fieldPath: metadata.namespace } }
+            - name: ANVIL_CONSOLE_TOKEN_FILE
+              value: /var/run/anvil-console/token
+          volumeMounts:
+            - { name: console-access, mountPath: /var/run/anvil-console, readOnly: true }
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: "1", memory: 256Mi }
+          securityContext:
+            {
+              allowPrivilegeEscalation: false,
+              readOnlyRootFilesystem: true,
+              capabilities: { drop: [ALL] },
+            }
+          readinessProbe: { httpGet: { path: /api/health, port: http } }
+          livenessProbe: { httpGet: { path: /api/health, port: http } }
+      volumes:
+        - name: console-access
+          secret: { secretName: anvil-console-access, defaultMode: 0440 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: anvil-console
+  namespace: anvil
+spec:
+  selector: { app: anvil-console }
+  ports: [{ name: http, port: 8081, targetPort: http }]

@@ -1,0 +1,30 @@
+{
+  "name": "@anvil/console",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.0",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "start": "node server/main.mjs",
+    "test": "node --test test/server.test.mjs",
+    "test:browser": "node test/browser.mjs"
+  },
+  "dependencies": {
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "lucide-react": "1.0.0",
+    "tailwindcss": "4.3.0",
+    "@tailwindcss/vite": "4.3.0",
+    "tw-animate-css": "1.3.4"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "@types/node": "24.0.0",
+    "typescript": "5.9.3",
+    "@vitejs/plugin-react": "6.0.0",
+    "vite": "8.2.0",
+    "playwright": "1.62.0"
+  }
+}

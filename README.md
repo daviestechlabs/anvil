@@ -11,8 +11,9 @@ It runs approved recipes through Argo Workflows and records execution identity, 
 - **Evaluate** the exact artifact with an `EvaluationRun`.
 - **Approve** it through a `ModelPromotion` using separate approver permissions.
 
-The repository includes the operator, `anvilctl` CLI, Helm chart, and a CPU quickstart.
-The console and serving integrations are separate; promotion records a decision, while model activation stays with your serving system.
+The repository includes the operator, `anvilctl` CLI, Helm chart, web console, and a CPU quickstart.
+The [console guide](console/README.md) covers local preview, Kubernetes access, and reviewed run submission.
+Promotion records a decision, while model activation stays with your serving system.
 
 ## Quickstart
 

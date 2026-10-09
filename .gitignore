@@ -6,6 +6,8 @@
 *.pem
 *.kubeconfig
 /receipts/
+node_modules/
+/console/dist/
 __pycache__/
 *.pyc
 .DS_Store

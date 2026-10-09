@@ -2,4 +2,5 @@
 .env*
 bin
 receipts
+console
 __pycache__

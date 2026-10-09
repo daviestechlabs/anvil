@@ -1,0 +1,104 @@
+@import "tailwindcss" source(".");
+@import "tw-animate-css";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-background: #0a0a0b;
+  --color-foreground: #f2f2f0;
+  --color-card: #121214;
+  --color-card-foreground: #f2f2f0;
+  --color-popover: #161618;
+  --color-popover-foreground: #f2f2f0;
+  --color-primary: #e8e9ed;
+  --color-primary-foreground: #0a0a0b;
+  --color-secondary: #1c1c20;
+  --color-secondary-foreground: #e4e4e7;
+  --color-muted: #1a1a1e;
+  --color-muted-foreground: #9a9aa3;
+  --color-accent: #222228;
+  --color-accent-foreground: #f2f2f0;
+  --color-destructive: #c45c52;
+  --color-destructive-foreground: #f2f2f0;
+  --color-border: rgb(242 242 240 / 0.1);
+  --color-input: rgb(242 242 240 / 0.12);
+  --color-ring: #c8ccd4;
+  --color-success: #7d9b7a;
+  --color-warning: #b8a27a;
+  --color-steel: #c8ccd4;
+
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius: 0.75rem;
+
+  --shadow-border: 0 0 0 1px rgb(255 255 255 / 0.08);
+  --shadow-border-hover: 0 0 0 1px rgb(255 255 255 / 0.14);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+
+  ::selection {
+    background: rgb(200 204 212 / 0.28);
+    color: var(--color-foreground);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Keep console typography and surfaces compact without changing the public landing page. */
+.anvil-console {
+  --font-display: var(--font-sans);
+  --radius-xl: 1rem;
+}
+
+.anvil-console main h1.font-display {
+  font-size: clamp(1.75rem, 2.5vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}

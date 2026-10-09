@@ -29,6 +29,26 @@ jobs:
           assets=$(go run sigs.k8s.io/controller-runtime/tools/setup-envtest@v0.0.0-20250517180713-32e5e9e948a5 use 1.37.0 --bin-dir /tmp/anvil-envtest -p path)
           echo "KUBEBUILDER_ASSETS=$assets" >> "$GITHUB_ENV"
       - run: ANVIL_HELM_TEST=1 ./scripts/test-integration.sh
+  console:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: console
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24.19.0'
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.0'
+      - run: bun install --frozen-lockfile
+      - run: bun run build && bun run test
+      - run: bunx playwright install --with-deps chromium
+      - run: bun run test:browser
   cpu-lifecycle:
     runs-on: ubuntu-24.04
     timeout-minutes: 25

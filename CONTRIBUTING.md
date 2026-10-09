@@ -13,6 +13,8 @@ This repository publishes its reusable open source core.
 Contributors can submit issues and pull requests here without access to the private repository.
 Maintainers review shared changes in the authoritative repository before publishing an updated export.
 Private integrations and deployment configuration remain outside this package.
+
+The portable console uses shared Anvil presentation files and namespace-scoped Kubernetes APIs.
 GitHub CI validates this package; production deployments follow the authoritative repository's release process.
 
 ## Local checks
@@ -33,6 +35,21 @@ CRD changes need schema compatibility tests and matching chart copies.
 Execution changes need the disposable CPU lifecycle test.
 Use synthetic data and a disposable cluster.
 Never run contribution tests against production.
+
+## Console checks
+
+Run these commands from `console/` with Node.js 24 and Bun 1.4.0.
+
+```bash
+bun install --frozen-lockfile
+bun run build
+bun run test
+bunx playwright install --with-deps chromium
+bun run test:browser
+```
+
+Browser checks use synthetic resources and disposable loopback APIs.
+The console cannot approve promotions or edit reviewed recipes.
 
 ## Kubernetes integration checks
 
