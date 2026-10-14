@@ -1,43 +1,70 @@
 @import "tailwindcss" source(".");
 @import "tw-animate-css";
 
+/*
+ * Forge theme. Warm iron surfaces, machined hairlines, and one hot accent.
+ * Ember marks the action an operator can take and the place they are.
+ * Status colors stay separate: patina (good), brass (held), rust (failed), steel (moving).
+ * console-oss imports this file, so keep token names stable.
+ */
 @theme {
-  --font-sans: ui-sans-serif, system-ui, sans-serif;
-  --font-display: Georgia, "Times New Roman", serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 
-  --color-background: #0a0a0b;
-  --color-foreground: #f2f2f0;
-  --color-card: #121214;
-  --color-card-foreground: #f2f2f0;
-  --color-popover: #161618;
-  --color-popover-foreground: #f2f2f0;
-  --color-primary: #e8e9ed;
-  --color-primary-foreground: #0a0a0b;
-  --color-secondary: #1c1c20;
-  --color-secondary-foreground: #e4e4e7;
-  --color-muted: #1a1a1e;
-  --color-muted-foreground: #9a9aa3;
-  --color-accent: #222228;
-  --color-accent-foreground: #f2f2f0;
-  --color-destructive: #c45c52;
-  --color-destructive-foreground: #f2f2f0;
-  --color-border: rgb(242 242 240 / 0.1);
-  --color-input: rgb(242 242 240 / 0.12);
-  --color-ring: #c8ccd4;
-  --color-success: #7d9b7a;
-  --color-warning: #b8a27a;
-  --color-steel: #c8ccd4;
+  --color-background: #0d0c0b;
+  --color-foreground: #ece7e1;
+  --color-card: #151413;
+  --color-card-foreground: #ece7e1;
+  --color-popover: #1b1917;
+  --color-popover-foreground: #ece7e1;
+  --color-primary: #e8692f;
+  --color-primary-foreground: #160b05;
+  --color-secondary: #201e1c;
+  --color-secondary-foreground: #e2dcd5;
+  --color-muted: #1b1a18;
+  --color-muted-foreground: #9d958c;
+  --color-accent: #262321;
+  --color-accent-foreground: #ece7e1;
+  --color-destructive: #d65a45;
+  --color-destructive-foreground: #fff4f0;
+  --color-border: rgb(236 231 225 / 0.09);
+  --color-input: rgb(236 231 225 / 0.15);
+  --color-ring: #f08a4b;
+  --color-success: #8fb07a;
+  --color-warning: #d4a849;
+  --color-steel: #a9b4c2;
 
-  --radius-xs: 0.25rem;
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-  --radius: 0.75rem;
+  --color-ember: #e8692f;
+  --color-ember-glow: #ff9a55;
+  --color-iron: #090807;
+  --color-plate: #1a1816;
+  --color-hairline: rgb(236 231 225 / 0.06);
 
-  --shadow-border: 0 0 0 1px rgb(255 255 255 / 0.08);
-  --shadow-border-hover: 0 0 0 1px rgb(255 255 255 / 0.14);
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.1875rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
+  --radius: 0.25rem;
+
+  --shadow-border: 0 0 0 1px rgb(236 231 225 / 0.08);
+  --shadow-border-hover: 0 0 0 1px rgb(236 231 225 / 0.16);
+  --shadow-plate: 0 0 0 1px rgb(236 231 225 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.03);
+  --shadow-ember: 0 0 0 1px rgb(232 105 47 / 0.55), 0 0 24px -6px rgb(232 105 47 / 0.45);
+
+  --animate-heat: heat 2.4s ease-in-out infinite;
+
+  @keyframes heat {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
 }
 
 @layer base {
@@ -46,6 +73,7 @@
     -moz-osx-font-smoothing: grayscale;
     background: var(--color-background);
     color: var(--color-foreground);
+    color-scheme: dark;
   }
 
   body {
@@ -53,6 +81,7 @@
     background: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
   }
 
   h1,
@@ -66,7 +95,8 @@
   }
 
   button:not(:disabled),
-  [role="button"]:not(:disabled) {
+  [role="button"]:not(:disabled),
+  summary {
     cursor: pointer;
   }
 
@@ -75,8 +105,224 @@
   }
 
   ::selection {
-    background: rgb(200 204 212 / 0.28);
+    background: rgb(232 105 47 / 0.32);
     color: var(--color-foreground);
+  }
+
+  /* Native controls follow the theme even where a page has not adopted the shared field classes. */
+  input[type="checkbox"],
+  input[type="radio"],
+  progress {
+    accent-color: var(--color-ember);
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239d958c' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    padding-inline-end: 2.1rem !important;
+  }
+
+  input[type="file"] {
+    font-size: 0.75rem;
+    color: var(--color-muted-foreground);
+  }
+
+  input[type="file"]::file-selector-button {
+    margin-inline-end: 0.75rem;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: var(--color-secondary);
+    box-shadow: var(--shadow-border);
+    padding: 0.4rem 0.75rem;
+    font: inherit;
+    font-weight: 500;
+    color: var(--color-foreground);
+    cursor: pointer;
+    transition: background-color 150ms ease-out;
+  }
+
+  input[type="file"]::file-selector-button:hover {
+    background: var(--color-accent);
+  }
+
+  select option {
+    background: var(--color-popover);
+    color: var(--color-foreground);
+  }
+
+  details > summary {
+    list-style: none;
+  }
+
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details > summary::before {
+    content: "";
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-inline-end: 0.6rem;
+    vertical-align: 0.12em;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 150ms ease-out;
+    opacity: 0.6;
+  }
+
+  details[open] > summary::before {
+    transform: rotate(45deg);
+  }
+
+  /* Summaries that draw their own chevron icon skip the default marker. */
+  details > summary:has(svg)::before {
+    content: none;
+  }
+
+  * {
+    scrollbar-color: rgb(236 231 225 / 0.16) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+/* Mono, tracked, uppercase label that names a block. */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+
+/* Numeric readout. */
+@utility readout {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Machined surface: hairline frame plus a faint top bevel. */
+@utility plate {
+  background: var(--color-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-plate);
+}
+
+/* Corner registration ticks. Combine with plate for featured surfaces. */
+@utility ticks {
+  --tick: rgb(236 231 225 / 0.28);
+  background-image:
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick));
+  background-repeat: no-repeat;
+  background-size:
+    10px 1px,
+    1px 10px,
+    10px 1px,
+    1px 10px,
+    10px 1px,
+    1px 10px,
+    10px 1px,
+    1px 10px;
+  background-position:
+    top left,
+    top left,
+    top right,
+    top right,
+    bottom left,
+    bottom left,
+    bottom right,
+    bottom right;
+}
+
+/* Diagonal caution stripes for held or destructive context. */
+@utility hazard {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgb(212 168 73 / 0.12) 0 6px,
+    transparent 6px 12px
+  );
+}
+
+/* Faint workshop grid. */
+@utility blueprint {
+  background-image:
+    linear-gradient(rgb(236 231 225 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(236 231 225 / 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Shared form control look for native input, select, and textarea elements. */
+@utility field {
+  display: block;
+  width: 100%;
+  min-height: 2.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-input);
+  background-color: var(--color-iron);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--color-foreground);
+  transition:
+    border-color 150ms ease-out,
+    box-shadow 150ms ease-out;
+  &::placeholder {
+    color: rgb(157 149 140 / 0.8);
+  }
+  &:hover:not(:disabled) {
+    border-color: rgb(236 231 225 / 0.24);
+  }
+  &:focus-visible {
+    outline: none;
+    border-color: var(--color-ember);
+    box-shadow: 0 0 0 3px rgb(232 105 47 / 0.2);
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+/* Data table: mono headers, hairline rows. */
+@utility data-table {
+  width: 100%;
+  text-align: left;
+  font-size: 0.8125rem;
+  border-collapse: collapse;
+  /* Cells contain absolutely positioned sr-only labels inside horizontal scrollers. */
+  & th,
+  & td {
+    position: relative;
+  }
+  & th {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-muted-foreground);
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+  }
+  & td {
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid var(--color-hairline);
+    vertical-align: top;
+  }
+  & tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  & tbody tr:hover td {
+    background: rgb(236 231 225 / 0.02);
   }
 }
 
@@ -90,15 +336,9 @@
   }
 }
 
-/* Keep console typography and surfaces compact without changing the public landing page. */
-.anvil-console {
-  --font-display: var(--font-sans);
-  --radius-xl: 1rem;
-}
-
 .anvil-console main h1.font-display {
-  font-size: clamp(1.75rem, 2.5vw, 2rem);
-  font-weight: 600;
+  font-size: clamp(1.75rem, 2.6vw, 2.125rem);
+  font-weight: 650;
   letter-spacing: -0.035em;
-  line-height: 1.2;
+  line-height: 1.15;
 }

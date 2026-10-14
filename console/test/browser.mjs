@@ -8,7 +8,10 @@ const f = await fixture(
   { after: (callback) => cleanup.push(callback) },
   { dist: fileURLToPath(new URL("../dist", import.meta.url)) },
 );
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({
+  headless: true,
+  executablePath: process.env.K6_BROWSER_EXECUTABLE_PATH,
+});
 try {
   const context = await browser.newContext();
   const page = await context.newPage();
@@ -25,7 +28,7 @@ try {
       .locator(".card.stat")
       .first()
       .evaluate((element) => getComputedStyle(element).backgroundColor),
-    "rgb(18, 18, 20)",
+    "rgb(21, 20, 19)",
     "Exported cards retain the shared theme",
   );
   assert.equal(
@@ -33,14 +36,14 @@ try {
       .locator(".muted")
       .first()
       .evaluate((element) => getComputedStyle(element).color),
-    "rgb(154, 154, 163)",
+    "rgb(157, 149, 140)",
     "Exported text retains theme contrast",
   );
   assert.equal(
     await page
       .getByRole("button", { name: "New run" })
       .evaluate((element) => getComputedStyle(element).backgroundColor),
-    "rgb(232, 233, 237)",
+    "rgb(232, 105, 47)",
     "Primary actions retain the shared theme",
   );
   assert.equal(
@@ -48,7 +51,7 @@ try {
       .locator(".progress-cell")
       .first()
       .evaluate((element) => getComputedStyle(element).getPropertyValue("--color-steel").trim()),
-    "#c8ccd4",
+    "#a9b4c2",
     "Progress retains its shared color token",
   );
   assert.equal(await page.getByLabel("cpu-training-02 progress").getAttribute("value"), "2");
